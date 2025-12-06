@@ -1,4 +1,4 @@
-package Calculator;
+package org.example.calculator.service;
 
 public class OperationService implements Operations {
     public static Double result;

@@ -1,4 +1,4 @@
-package org.example.dsdd.Service;
+package org.example.calculator;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -7,7 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import javax.swing.*;
 import java.io.IOException;
 
 public class MyApp extends Application {
@@ -20,7 +19,7 @@ public class MyApp extends Application {
         stage.setScene(scene);
         stage.setTitle("Калькулятор");
 
-        Image icon = new Image(getClass().getResourceAsStream("/icon.png"));
+        Image icon = new Image(getClass().getResourceAsStream("/images/icon.png"));
         stage.getIcons().add(icon);
 
         stage.show();

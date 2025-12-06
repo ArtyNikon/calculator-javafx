@@ -1,10 +1,10 @@
-package org.example.dsdd.Service;
+package org.example.calculator.сontroller;
 
-import Calculator.Calculator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.text.Text;
+import org.example.calculator.service.Calculator;
 
 public class Controller {
 

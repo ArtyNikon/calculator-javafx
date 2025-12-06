@@ -1,4 +1,4 @@
-package Calculator;
+package org.example.calculator.service;
 
 import java.util.ArrayList;
 import java.util.List;
