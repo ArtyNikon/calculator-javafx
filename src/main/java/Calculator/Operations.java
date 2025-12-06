@@ -9,4 +9,11 @@ public interface Operations {
     double multiplication(double a, double b);
 
     double division(double a, double b);
+
+    double reciprocal(double a);
+    double square(double a);
+    double squareRoot(double a);
+    double calculatePercentage(double a);
+
+
 }

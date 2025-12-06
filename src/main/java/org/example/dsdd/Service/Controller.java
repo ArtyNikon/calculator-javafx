@@ -3,52 +3,53 @@ package org.example.dsdd.Service;
 import Calculator.Calculator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
 
 public class Controller {
 
     @FXML
     Text txt;
 
+    private double storedValue = 0.0;
+    private String pendingOperator = "";
+    private boolean isNewNumber = true;
+
+    private boolean isOpPressed = false;
+    private boolean isEqualsPressed = false;
+    private double lastOperand = 0.0;
+    private String lastOperator = "";
+
     private Calculator calculator = new Calculator();
 
-    public void handleDigit(ActionEvent event) throws IOException {
+    public void handleDigit(ActionEvent event) {
         String digit = getButtonName(event);
         String currentText = txt.getText();
 
-        if (currentText.equals("0")) {
+        isOpPressed = false;
+        isEqualsPressed = false;
+
+        if (currentText.equals("0") || isNewNumber) {
             txt.setText(digit);
+            isNewNumber = false;
         } else {
             txt.setText(currentText + digit);
         }
     }
 
-    public void handleMultiply(ActionEvent event) throws IOException {
+    public void handleMultiply(ActionEvent event) {
         handleOperator(event);
     }
 
-    public void handleSubtract(ActionEvent event) throws IOException {
+    public void handleSubtract(ActionEvent event) {
         handleOperator(event);
     }
 
-    public void handleAdd(ActionEvent event) throws IOException {
+    public void handleAdd(ActionEvent event) {
         handleOperator(event);
     }
 
-    public void handleDivide(ActionEvent event) throws IOException {
+    public void handleDivide(ActionEvent event) {
         handleOperator(event);
     }
 
@@ -56,66 +57,75 @@ public class Controller {
         String operator = getButtonName(event);
         String currentText = txt.getText();
 
-        if (currentText.isEmpty()) {
+        if (currentText.contains("Error")) return;
+
+        if (isOpPressed) {
+            pendingOperator = operator;
             return;
         }
 
-        if (isLastCharOperator(currentText)) {
-            if (currentText.equals("-")) {
+        double currentNumber = Double.parseDouble(currentText.replace(',', '.'));
+
+        if (!pendingOperator.isEmpty()) {
+            String expression = Double.toString(storedValue) + pendingOperator + Double.toString(currentNumber);
+            String result = calculator.calculate(expression);
+
+            if (result.contains("Error")) {
+                txt.setText(result);
                 return;
             }
+            storedValue = Double.parseDouble(result);
 
-            String oldOperator = currentText.substring(currentText.length() - 1);
-
-            if (operator.equals(oldOperator)) {
-                return;
-            }
-
-            String newText = currentText.substring(0, currentText.length() - 1) + operator;
-            txt.setText(newText);
+            String displayResult = String.valueOf(storedValue);
+            if (displayResult.endsWith(".0")) displayResult = displayResult.substring(0, displayResult.length() - 2);
+            txt.setText(displayResult.replace('.', ','));
         } else {
-            if (currentText.contains("+") || currentText.contains("-") || currentText.contains("×") || currentText.contains("÷")) {
-                String result = calculator.calculate(currentText);
-
-                if (result.contains("Error")) {
-                    txt.setText(result);
-                    return;
-                }
-                txt.setText(result + operator);
-            } else {
-                txt.setText(currentText + operator);
-            }
+            storedValue = currentNumber;
         }
+
+        pendingOperator = operator;
+        isNewNumber = true;
+        isOpPressed = true;
+        isEqualsPressed = false;
     }
 
-    public void handleClearAll(ActionEvent event) throws IOException {
+    public void handleClearAll(ActionEvent event) {
         txt.setText("0");
+        storedValue = 0.0;
+        pendingOperator = "";
+        isNewNumber = true;
+        isOpPressed = false;
+        isEqualsPressed = false;
+        lastOperand = 0.0;
+        lastOperator = "";
     }
 
     public void handleClearEntry(ActionEvent event) {
-        String text = txt.getText();
-        int lastOperatorIndex = -1;
+        if (isEqualsPressed) {
+            handleClearAll(event);
+            return;
+        }
 
-        for (int i = text.length() - 1; i >= 0; i--) {
-            if (calculator.getOperators().contains(text.charAt(i))) {
-                lastOperatorIndex = i;
-                break;
-            }
-        }
-        if (lastOperatorIndex == -1) {
+        String text = txt.getText();
+        if (text.equals("0") || isNewNumber) {
             txt.setText("0");
-        } else if (lastOperatorIndex == text.length() - 1) {
-        } else {
-            String newText = text.substring(0, lastOperatorIndex + 1);
-            txt.setText(newText);
+            return;
         }
+
+        txt.setText("0");
+        isNewNumber = true;
     }
 
     public void handleBackspace(ActionEvent event) {
+        if (isNewNumber || isEqualsPressed) {
+            return;
+        }
+
         String currentText = txt.getText();
 
         if (currentText.length() <= 1) {
             txt.setText("0");
+            isNewNumber = true;
             return;
         }
 
@@ -124,45 +134,144 @@ public class Controller {
     }
 
     public void handleDecimalPoint(ActionEvent event) {
-        String currentText = txt.getText();
-
-        if (isLastCharOperator(currentText)) {
-            txt.setText(currentText + "0.");
+        if (isNewNumber || isEqualsPressed) {
+            txt.setText("0,");
+            isNewNumber = false;
+            isEqualsPressed = false;
+            isOpPressed = false;
             return;
         }
 
-        int lastOpIndex = -1;
-        for (int i = currentText.length() - 1; i >= 0; i--) {
-            if (calculator.getOperators().contains(currentText.charAt(i))) {
-                lastOpIndex = i;
-                break;
-            }
-        }
-
-        String lastNumber = currentText.substring(lastOpIndex + 1);
-
-        if (!lastNumber.contains(",")) {
+        String currentText = txt.getText();
+        if (!currentText.contains(",")) {
             txt.setText(currentText + ",");
         }
     }
 
-    public void handleEquals(ActionEvent event) throws IOException {
-        String currentText = txt.getText();
-        String result = calculator.calculate(currentText);
-        txt.setText(result);
+    public void handleEquals(ActionEvent event) {
+        if (txt.getText().contains("Error")) return;
+
+        double currentNumber = Double.parseDouble(txt.getText().replace(',', '.'));
+        String result;
+
+        if (pendingOperator.isEmpty() && !isEqualsPressed) {
+            return;
+        }
+
+        if (!pendingOperator.isEmpty()) {
+            lastOperand = currentNumber;
+            lastOperator = pendingOperator;
+
+            String expression = Double.toString(storedValue) + pendingOperator + Double.toString(currentNumber);
+            result = calculator.calculate(expression);
+
+            pendingOperator = "";
+        } else {
+            String expression = Double.toString(storedValue) + lastOperator + Double.toString(lastOperand);
+            result = calculator.calculate(expression);
+        }
+
+        if (result.contains("Error")) {
+            txt.setText(result);
+            return;
+        }
+
+        storedValue = Double.parseDouble(result);
+
+        String displayResult = String.valueOf(storedValue);
+        if (displayResult.endsWith(".0")) {
+            displayResult = displayResult.substring(0, displayResult.length() - 2);
+        }
+
+        txt.setText(displayResult.replace('.', ','));
+        isNewNumber = true;
+        isOpPressed = false;
+        isEqualsPressed = true;
     }
 
-    public void handleToggleSign(ActionEvent event) throws IOException {
+    public void handleReciprocal(ActionEvent event) {
         String currentText = txt.getText();
-        if (currentText.isEmpty() || currentText.equals("0")) return;
+        String result = calculator.reciprocal(currentText);
+
+        if (!result.contains("Error")) {
+            result = result.replace('.', ',');
+            storedValue = Double.parseDouble(result.replace(',', '.'));
+        }
+
+        txt.setText(result);
+        isNewNumber = true;
+        isEqualsPressed = true;
+    }
+
+    public void handleSquare(ActionEvent event) {
+        String currentText = txt.getText();
+        String result = calculator.square(currentText);
+
+        if (!result.contains("Error")) {
+            result = result.replace('.', ',');
+            storedValue = Double.parseDouble(result.replace(',', '.'));
+        }
+
+        txt.setText(result);
+        isNewNumber = true;
+        isEqualsPressed = true;
+    }
+
+    public void handleSquareRoot(ActionEvent event) {
+        String currentText = txt.getText();
+        String result = calculator.squareRoot(currentText);
+
+        if (!result.contains("Error")) {
+            result = result.replace('.', ',');
+            storedValue = Double.parseDouble(result.replace(',', '.'));
+        }
+
+        txt.setText(result);
+        isNewNumber = true;
+        isEqualsPressed = true;
+    }
+
+    public void handlePercent(ActionEvent event) {
+        String currentText = txt.getText();
+        if (currentText.contains("Error")) return;
+
+        double currentNumber = Double.parseDouble(currentText.replace(',', '.'));
+        double resultValue;
+
+        if (!pendingOperator.isEmpty()) {
+            resultValue = storedValue * (currentNumber / 100.0);
+        } else {
+            resultValue = currentNumber / 100.0;
+        }
+
+        String resultString = String.valueOf(resultValue);
+        if (resultString.endsWith(".0")) {
+            resultString = resultString.substring(0, resultString.length() - 2);
+        }
+
+        txt.setText(resultString.replace('.', ','));
+    }
+
+    public void handleToggleSign(ActionEvent event) {
+        String currentText = txt.getText();
+        if (currentText.isEmpty() || currentText.equals("0") || currentText.equals("0,")) return;
 
         try {
             double val = Double.parseDouble(currentText.replace(',', '.'));
-            if (val == (long) val) {
-                txt.setText(String.valueOf((long) -val));
-            } else {
-                txt.setText(String.valueOf(-val));
+            double result = -val;
+
+            String resultString = String.valueOf(result);
+
+            if (resultString.endsWith(".0")) {
+                resultString = resultString.substring(0, resultString.length() - 2);
             }
+
+            txt.setText(resultString.replace('.', ','));
+
+            if (isEqualsPressed) {
+                storedValue = result;
+            }
+
         } catch (NumberFormatException e) {
         }
     }
@@ -173,9 +282,6 @@ public class Controller {
 
     private boolean isLastCharOperator(String text) {
         if (text.isEmpty()) {
-            return false;
-        }
-        if (text.length() == 1) {
             return false;
         }
         char lastChar = text.charAt(text.length() - 1);

@@ -29,4 +29,30 @@ public class OperationService implements Operations {
         result = a / b;
         return result;
     }
+
+    @Override
+    public double reciprocal(double a) {
+        if (a == 0) {
+            throw new ArithmeticException("Division by zero");
+        }
+        return 1.0 / a;
+    }
+
+    @Override
+    public double square(double a) {
+        return a * a;
+    }
+
+    @Override
+    public double squareRoot(double a) {
+        if (a < 0) {
+            throw new ArithmeticException("Invalid input for square root");
+        }
+        return Math.sqrt(a);
+    }
+
+    @Override
+    public double calculatePercentage(double a) {
+        return a / 100.0;
+    }
 }

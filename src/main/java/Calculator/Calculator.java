@@ -40,24 +40,27 @@ public class Calculator {
         }
 
         try {
-            float num1 = Float.parseFloat(expression.substring(0, operatorIndex));
-            float num2 = Float.parseFloat(expression.substring(operatorIndex + 1));
+            double num1 = Double.parseDouble(expression.substring(0, operatorIndex));
+            double num2 = Double.parseDouble(expression.substring(operatorIndex + 1));
 
-            float result = 0.0f;
+            double result = 0.0;
 
             try {
                 switch (String.valueOf(foundOperator)) {
                     case "+":
-                        result = (float)service.addition(num1, num2);
+                        result = service.addition(num1, num2);
                         break;
                     case "-":
-                        result = (float)service.subtraction(num1, num2);
+                        result = service.subtraction(num1, num2);
                         break;
                     case "×":
-                        result = (float)service.multiplication(num1, num2);
+                        result = service.multiplication(num1, num2);
                         break;
                     case "÷":
-                        result = (float)service.division(num1, num2);
+                        result = service.division(num1, num2);
+                        if (Double.isInfinite(result) || Double.isNaN(result)) {
+                            return "Error: Division by zero";
+                        }
                         break;
                     default:
                         return "Error: Invalid operator";
@@ -68,6 +71,46 @@ public class Calculator {
             return String.valueOf(result);
         } catch (NumberFormatException e) {
             return "Error: Invalid input format";
+        }
+    }
+
+    public String reciprocal(String s) {
+        try {
+            double num = Double.parseDouble(s.replace(',', '.'));
+            double result = service.reciprocal(num);
+            return String.valueOf(result);
+        } catch (NumberFormatException | ArithmeticException e) {
+            return "Error";
+        }
+    }
+
+    public String square(String s) {
+        try {
+            double num = Double.parseDouble(s.replace(',', '.'));
+            double result = service.square(num);
+            return String.valueOf(result);
+        } catch (NumberFormatException e) {
+            return "Error";
+        }
+    }
+
+    public String squareRoot(String s) {
+        try {
+            double num = Double.parseDouble(s.replace(',', '.'));
+            double result = service.squareRoot(num);
+            return String.valueOf(result);
+        } catch (NumberFormatException | ArithmeticException e) {
+            return "Error";
+        }
+    }
+
+    public String toPercentage(String s) {
+        try {
+            double num = Double.parseDouble(s.replace(',', '.'));
+            double result = service.calculatePercentage(num);
+            return String.valueOf(result);
+        } catch (NumberFormatException e) {
+            return "Error";
         }
     }
 
